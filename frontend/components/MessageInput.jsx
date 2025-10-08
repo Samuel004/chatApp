@@ -2,12 +2,18 @@ import { useRef, useState } from "react";
 import { chatStore } from "../src/store/chatStore.js";
 import { Image, Send, X } from "lucide-react";
 import toast from "react-hot-toast";
+import CryptoJS from "crypto-js";
+
 
 const MessageInput = () => {
     const [text, setText] = useState("");
     const [imagePreview, setImagePreview] = useState(null);
     const fileInputRef = useRef(null);
     const { sendMessage } = chatStore();
+
+
+    const secretKey = import.meta.env.VITE_APP_SECRET_KEY;
+
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -33,8 +39,14 @@ const MessageInput = () => {
         if (!text.trim() && !imagePreview) return;
 
         try {
+
+            let encryptedText = "";
+            if (text.trim()){
+                encryptedText = CryptoJS.AES.encrypt(text.trim(),secretKey).toString();
+            }
+
             await sendMessage({
-                text: text.trim(),
+                text: encryptedText,
                 image: imagePreview,
             });
 

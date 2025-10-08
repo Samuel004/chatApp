@@ -1,10 +1,12 @@
 import { chatStore } from "../src/store/chatStore.js";
 import { useEffect, useRef } from "react";
-
+import CryptoJS from "crypto-js";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import MessageSkeleton from "../components/skeleton/MessageSkeleton.jsx";
 import { useAuthStore } from "../src/store/useAuthStore.js";
+
+import { Trophy } from "lucide-react";
 
 
 const ChatContainer = () => {
@@ -18,6 +20,19 @@ const ChatContainer = () => {
     } = chatStore();
     const { authUser } = useAuthStore();
     const messageEndRef = useRef(null);
+
+    const secretKey =import.meta.env.VITE_APP_SECRET_KEY;
+
+    const decryptMessage = (encryptedText) => {
+        try{
+            const bytes = CryptoJS.AES.decrypt(encryptedText,secretKey);
+            const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+            return decrypted || "[decryption failed]";
+        }catch(err){
+            console.error("Decryption Error:",err);
+            return "[Error Decrypting]";
+        }
+    };
 
     useEffect(() => {
         getMessages(selectedUser._id);
@@ -75,7 +90,7 @@ const ChatContainer = () => {
                                     className="sm:max-w-[200px] rounded-md mb-2"
                                 />
                             )}
-                            {message.text && <p>{message.text}</p>}
+                            {message.text && <p>{decryptMessage(message.text)}</p>}
                         </div>
                     </div>
                 ))}
